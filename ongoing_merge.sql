@@ -2,7 +2,6 @@
 # UPLOAD TO BLOOMERANG #
 ########################
 /* FOR PAYPAL:
-
 =REGEXREPLACE(B25,"[A-Za-z]","")
 */
 
@@ -171,6 +170,9 @@ ORDER BY t.date ASC, t.donation_amount DESC
 # Updating specific custom events
 SELECT
   m.account_number AS Account_Number,
+  t.first_name AS First_Name,
+  t.last_name AS Last_Name,
+  # t.company_name AS Organization_Name,
   name_prefix AS Name_Title,
   is_board_member,
   is_volunteer,
@@ -206,6 +208,8 @@ FROM
     (t.donor_id = m.bigquery_id)
 WHERE
   m.account_number IS NOT NULL
+# Require running this 2x, once for individuals ( NOT(...) ) and once for organizations ( (...) )
+  AND NOT(IFNULL(t.is_company,FALSE) = TRUE OR IFNULL(t.is_foundation,FALSE) = TRUE)
   AND
     (name_prefix IS NOT NULL
      OR is_board_member IS NOT NULL
