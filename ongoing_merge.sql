@@ -52,8 +52,8 @@ FROM
     (SELECT
       d.donor_id AS bigquery_id,
       COALESCE(
-        b_fl_name.AccountNumber,
-        IF(d.is_company = TRUE OR d.is_foundation = TRUE, b_comp_name.AccountNumber, NULL),
+        b_fl_name.___AccountNumber,
+        IF(d.is_company = TRUE OR d.is_foundation = TRUE, b_comp_name.___AccountNumber, NULL),
         CASE
           WHEN d.donor_id = 188 THEN 192
           WHEN d.donor_id = 1003 THEN 242
@@ -75,14 +75,17 @@ FROM
         (d.company_name = b_comp_name.Employer)
     ) m ON
     (t.donor_id = m.bigquery_id)
-WHERE
-  t.transaction_number NOT IN
+  LEFT JOIN 
     (SELECT Custom__Bigquery_Transaction_Number
      FROM donations.bloomerang_export
-     GROUP BY 1)
+     GROUP BY 1) lim ON 
+    (t.transaction_number = lim.Custom__Bigquery_Transaction_Number)
+WHERE 1=1
   AND NOT(IFNULL(d.is_company,FALSE) = TRUE OR IFNULL(d.is_foundation,FALSE) = TRUE)
+  AND t.donation_amount > 0
+  AND lim.Custom__Bigquery_Transaction_Number IS NULL
 ORDER BY t.date ASC, t.donation_amount DESC
-
+;
 
 
 # Organizations with Donations.csv
@@ -133,8 +136,8 @@ FROM
     (SELECT
       d.donor_id AS bigquery_id,
       COALESCE(
-        b_fl_name.AccountNumber,
-        IF(d.is_company = TRUE OR d.is_foundation = TRUE, b_comp_name.AccountNumber, NULL),
+        b_fl_name.___AccountNumber,
+        IF(d.is_company = TRUE OR d.is_foundation = TRUE, b_comp_name.___AccountNumber, NULL),
         CASE
           WHEN d.donor_id = 188 THEN 192
           WHEN d.donor_id = 1003 THEN 242
@@ -156,12 +159,15 @@ FROM
         (d.company_name = b_comp_name.Employer)
     ) m ON
     (t.donor_id = m.bigquery_id)
-WHERE
-  t.transaction_number NOT IN
+  LEFT JOIN
     (SELECT Custom__Bigquery_Transaction_Number
      FROM donations.bloomerang_export
-     GROUP BY 1)
+     GROUP BY 1) lim ON 
+    (t.transaction_number = lim.Custom__Bigquery_Transaction_Number)
+WHERE 1=1
   AND (IFNULL(d.is_company,FALSE) = TRUE OR IFNULL(d.is_foundation,FALSE) = TRUE)
+  AND t.donation_amount > 0
+  AND lim.Custom__Bigquery_Transaction_Number IS NULL
 ORDER BY t.date ASC, t.donation_amount DESC
 ;
 
